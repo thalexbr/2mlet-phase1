@@ -5,9 +5,18 @@ import requests
 
 
 def download_file(file_link: str) -> str:
-    # file_link = 'http://vitibrasil.cnpuv.embrapa.br/download/Comercio.csv'
+    """
+    Downloads the file specified on the file_link argument
+
+    Args:
+        file_link (str): A URL which points to a file
+    Returns:
+        str: The customized file name prefixed with the current date and time
+    """
+
     current_datetime = datetime.now().strftime('%Y%m%d%H%M%S')
 
+    # Extracting the file data from the returned contest of the GET request
     file_data = requests.get(file_link).content
 
     # Assigning the current date and time to the filename
