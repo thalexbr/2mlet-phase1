@@ -10,11 +10,12 @@ def download_file(file_link: str) -> str:
 
     file_data = requests.get(file_link).content
 
+    # Assigning the current date and time to the filename
     file_name = current_datetime + '-' + file_link.split('/')[-1]
 
     save_path = os.getenv('DOWNLOAD_FOLDER') + file_name
 
     with open(save_path, 'wb') as fp:
         fp.write(file_data)
-    
+
     return file_name

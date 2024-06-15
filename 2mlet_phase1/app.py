@@ -15,7 +15,7 @@ app = FastAPI()
 # Loads variables from .env file, but does not overwrite existing ones
 # Not overwriting will support dockerization in the future (hopefully)
 # Environment variables will be provided by static .env file or by arguments
-load_dotenv(override=False)
+load_dotenv(override=True)
 
 base_url = os.getenv('BASE_URL')
 
@@ -36,19 +36,17 @@ def list_links():
         })
     return url_list
 
+
 @app.get('/export_files', status_code=HTTPStatus.OK)
 def export_files():
-    
     # Scraping the links to the files to be downloaded
     # Later a POST method could be implemented passing the list on its body
     url_list = list_links()
 
-    downloaded_files = { 'file_list' : []}
+    downloaded_files = {'file_list': []}
 
     for page in url_list['pages']:
         for link in page['page_links']:
             downloaded_files['file_list'].append(download_file(link))
 
     return downloaded_files
-
-
