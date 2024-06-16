@@ -53,10 +53,17 @@ def list_links(current_user = Depends(get_current_user)):
 
 
 @app.get('/export_files', status_code=HTTPStatus.OK)
-def export_files():
+def export_files(current_user = Depends(get_current_user)):
     # Scraping the links to the files to be downloaded
     # Later a POST method could be implemented passing the list on its body
-    url_list = list_links()
+
+    if not current_user['username']: 
+        raise HTTPException (
+            status_code=HTTPStatus.UNAUTHORIZED,
+            detail='Unauthorized'
+        )
+    
+    url_list = list_links(current_user)
 
     downloaded_files = {'file_list': []}
 
