@@ -9,12 +9,13 @@ from fastapi.security import OAuth2PasswordRequestForm
 from modules.export import download_file
 
 # User Modules
+from modules.file_utils import read_file
 from modules.scraping import scrape_url
 from modules.security import (
     create_access_token,
+    get_current_user,
     get_password_hash,
     verify_password,
-    get_current_user,
 )
 
 app = FastAPI()
@@ -29,12 +30,10 @@ base_url = os.getenv('BASE_URL')
 
 
 @app.get('/list_links', status_code=HTTPStatus.OK)
-def list_links(current_user = Depends(get_current_user)):
-
-    if not current_user['username']: 
-        raise HTTPException (
-            status_code=HTTPStatus.UNAUTHORIZED,
-            detail='Unauthorized'
+def list_links(current_user=Depends(get_current_user)):
+    if not current_user['username']:
+        raise HTTPException(
+            status_code=HTTPStatus.UNAUTHORIZED, detail='Unauthorized'
         )
 
     pages_file = open('static/pages.json', 'r', encoding='utf-8')
@@ -53,15 +52,14 @@ def list_links(current_user = Depends(get_current_user)):
 
 
 @app.get('/export_files', status_code=HTTPStatus.OK)
-def export_files(current_user = Depends(get_current_user)):
-    if not current_user['username']: 
-        raise HTTPException (
-            status_code=HTTPStatus.UNAUTHORIZED,
-            detail='Unauthorized'
+def export_files(current_user=Depends(get_current_user)):
+    if not current_user['username']:
+        raise HTTPException(
+            status_code=HTTPStatus.UNAUTHORIZED, detail='Unauthorized'
         )
-    
+
     # Scraping the links to the files to be downloaded
-    # Later a POST method could be implemented passing the list on its body   
+    # Later a POST method could be implemented passing the list on its body
     url_list = list_links(current_user)
 
     downloaded_files = {'file_list': []}
@@ -73,6 +71,11 @@ def export_files(current_user = Depends(get_current_user)):
     return downloaded_files
 
 
+@app.get('/show-file')
+def show_file():
+    return read_file('')
+
+
 @app.get('/encrypt_pwd')
 def encript_pwd():
     return {'password': get_password_hash(os.getenv('TEMP_PASSWORD'))}
@@ -82,18 +85,18 @@ def encript_pwd():
 def login_for_access_token(
     form_data: OAuth2PasswordRequestForm = Depends(),
 ):
-
     if form_data.username != os.getenv('TEMP_USER'):
         raise HTTPException(
             status_code=HTTPStatus.BAD_REQUEST,
-            detail='Incorrect email or password'
+            detail='Incorrect email or password',
         )
 
     if not verify_password(
-            form_data.password, os.getenv('TEMP_HASHED_PASSWORD')):
+        form_data.password, os.getenv('TEMP_HASHED_PASSWORD')
+    ):
         raise HTTPException(
             status_code=HTTPStatus.BAD_REQUEST,
-            detail='Incorrect email or password'
+            detail='Incorrect email or password',
         )
 
     access_token = create_access_token(data={'sub': form_data.username})

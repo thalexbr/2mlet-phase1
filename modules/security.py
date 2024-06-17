@@ -1,17 +1,16 @@
 import os
 from datetime import datetime, timedelta
+from http import HTTPStatus
 
+from fastapi import Depends, HTTPException
+from fastapi.security import OAuth2PasswordBearer
 from jwt import DecodeError, decode, encode
 from pwdlib import PasswordHash
 from zoneinfo import ZoneInfo
 
-from fastapi.security import OAuth2PasswordBearer
-from http import HTTPStatus
-from fastapi import Depends, HTTPException
-
 pwd_context = PasswordHash.recommended()
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl='token')
 
 
 def create_access_token(data: dict):
@@ -33,6 +32,7 @@ def get_password_hash(password: str):
 def verify_password(plain_password: str, hashed_password: str):
     return pwd_context.verify(plain_password, hashed_password)
 
+
 async def get_current_user(
     token: str = Depends(oauth2_scheme),
 ):
@@ -43,7 +43,10 @@ async def get_current_user(
     )
 
     try:
-        payload = decode(token, os.getenv('SECRET_KEY'), algorithms=[os.getenv('ALGORITHM')])
+        payload = decode(
+            token, os.getenv('SECRET_KEY'), algorithms=[os.getenv('ALGORITHM')]
+        )
+
         username: str = payload.get('sub')
         if not username:
             raise credentials_exception
@@ -51,7 +54,11 @@ async def get_current_user(
     except DecodeError:
         raise credentials_exception
 
-    user = {'username': token_data,'email': os.getenv('TEMP_EMAIL')} if token_data == os.getenv('TEMP_USER') else None
+    user = (
+        {'username': token_data, 'email': os.getenv('TEMP_EMAIL')}
+        if token_data == os.getenv('TEMP_USER')
+        else None
+    )
 
     if user is None:
         raise credentials_exception
